@@ -1,0 +1,137 @@
+---
+title: "JK QI dashboard "
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(wesanderson)
+library(MetBrewer)
+library(tidyverse)
+library(plotly)
+setwd("~/Dropbox/Consultant/Joan Kirner/QI dashboard")
+```
+
+```{r}
+testdata <- read.csv(
+  "~/Dropbox/Consultant/Joan Kirner/QI dashboard/Dec21 Jan22 Feb22  Small babies workbook.csv", na.strings="n/a")
+
+
+
+#select variables 
+data <- testdata %>% 
+  
+  select (
+  
+  Inborn..outborn, Birth.Month, Discharge.month, 
+  Corrected.gestation, MoAge, Prevprem, PrevPnd,
+  AssistConc, Ethnicity, 
+  Indig, PTL, PET, APH, IUGR, F_distress, MomAntib, 
+  Chorio.on.placental.histop,
+  Steroids, Any.steroids.AN, MagSulphate24, Any.MGSO4,
+  Plurality, BrthOrd, DOB, DOBTime, SEX,
+  Wght, BW.Zscore, Gest, Gestdays
+  
+) %>% 
+
+#rename variables 
+  
+  rename(
+    
+  inborn_outborn=Inborn..outborn, birth_month=Birth.Month,
+  discharge_month=Discharge.month, 
+  corrected_gestation=Corrected.gestation, mat_age=MoAge,
+  pre_prem=Prevprem, prev_pnd=PrevPnd, assist_conc=AssistConc, 
+  ethnicity=Ethnicity, indigenous=Indig, preterm_labour=PTL,
+  pet=PET, aph=APH, iugr=IUGR, fetal_distress=F_distress,  
+  maternal_ab=MomAntib, chorio=Chorio.on.placental.histop, 
+  steroids=Steroids, 
+  an_steroids_any=Any.steroids.AN,
+  mgso4=MagSulphate24, mgso4_any=Any.MGSO4,
+  plurality=Plurality, birth_order=BrthOrd, 
+  dob=DOB, dob_time=DOBTime, 
+  sex=SEX, weight=Wght, bw_zscore=BW.Zscore, gest_weeks=Gest, 
+  gestation_days=Gestdays
+  
+) 
+
+```
+Joan Kirner Dashboard 
+========================================================================
+
+
+Column {data-width=350, data-height=350}
+-----------------------------------------------------------------------
+
+### Antenatal steroid exposure 
+
+```{r}
+field1 <- ggplot (data, aes(gest_weeks, steroids, fill=factor(an_steroids_any))) + 
+  
+  geom_col() +
+  
+  labs(x="Gestational age (weeks)",y = "Antenatal steroid exposure") + 
+    theme_classic() +
+      theme(text=element_text(size=10)) + 
+          guides(size="none", alpha="none", fill=guide_legend("Antenatal steroids")) + 
+           scale_fill_manual(values = c("#8CC4DA", "#824d83"), labels=c("No", "Yes"))
+
+field2 <- ggplotly(field1) %>% 
+  layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+
+field2
+
+
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Gestation vs Birth weight by sex 
+
+```{r}
+field2 <- ggplot (data, aes(gest_weeks, weight, color=factor(sex), 
+                            fill=factor(sex))) + 
+    geom_smooth() + 
+ labs(x="Gestation", y = "Birth weight") + 
+  theme_minimal() +
+    theme(text=element_text(size=5)) +
+ guides(size="none", alpha="none", fill="none", color=guide_legend("Sex")) +
+           scale_color_manual(values = c("#8CC4DA", "#C0D282"),
+                              labels=c("Female", "Male")) +
+           scale_fill_manual(values = c("#8CC4DA", "#C0D282"))
+                              
+
+
+field2
+
+ggplotly(field2)%>% 
+  layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+```
+
+### Gestation vs birthweight by ethnicity 
+
+```{r}
+field3 <- ggplot (data, aes(gest_weeks, weight, color=factor(ethnicity), size=mat_age))
+
+field3a <- field3 + geom_jitter(aes (alpha=0.5), width=0.3)
+
+
+field3b <- field3a + 
+  labs(x="Gestation",y = "Birth weight") + 
+    theme_classic() +
+     theme(text=element_text(size=10), 
+      plot.title = element_text(hjust = 0.5),
+       plot.subtitle = element_text(hjust = 0.5)) + 
+        guides(size="none", alpha="none", fill="none", color="none") + 
+          scale_radius(range = c(1, 5)) +
+           scale_color_manual(values = c("#8CC4DA", "#C0D282", "#533C73", "red", "blue"))
+                          
+
+ggplotly(field3b)
+```
+
